@@ -1,11 +1,15 @@
 package td.service.impl;
 
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import td.constant.MessageConstant;
+import td.constant.PasswordConstant;
 import td.constant.StatusConstant;
+import td.context.BaseContext;
+import td.dto.EmployeeDTO;
 import td.dto.EmployeeLoginDTO;
 import td.entity.Employee;
 import td.exception.AccountLockedException;
@@ -13,6 +17,8 @@ import td.exception.AccountNotFoundException;
 import td.exception.PasswordErrorException;
 import td.mapper.EmployeeMapper;
 import td.service.EmployeeService;
+
+import java.time.LocalDateTime;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -54,6 +60,28 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //3、返回实体对象
         return employee;
+    }
+
+    /**
+     * 新增员工
+     * @param employeeDTO
+     */
+    @Override
+    public void save(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+        //对象属性拷贝 属性名一致
+        BeanUtils.copyProperties(employeeDTO,employee);
+        //账号状态
+        employee.setStatus(StatusConstant.ENABLE);
+        //设置密码
+        employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
+        employee.setCreateTime(LocalDateTime.now());
+        employee.setUpdateTime(LocalDateTime.now());
+
+        // 设置当前记录创建人和修改人
+        employee.setCreateUser(BaseContext.getCurrentId());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+        employeeMapper.insert(employee);
     }
 
 }

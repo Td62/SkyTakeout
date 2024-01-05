@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import td.constant.JwtClaimsConstant;
+import td.dto.EmployeeDTO;
 import td.dto.EmployeeLoginDTO;
 import td.entity.Employee;
 import td.properties.JwtProperties;
@@ -74,6 +75,15 @@ public class EmployeeController {
     @PostMapping("/logout")
     @Operation(summary = "员工退出")
     public Result<String> logout() {
+        return Result.success();
+    }
+
+
+    @PostMapping
+    @Operation(summary = "新增员工")
+    public Result<String> sava(@RequestBody EmployeeDTO employeeDTO){
+        log.info("新增员工:{}",employeeDTO);
+        employeeService.save(employeeDTO);
         return Result.success();
     }
 
