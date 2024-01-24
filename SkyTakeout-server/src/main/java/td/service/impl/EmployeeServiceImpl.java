@@ -1,6 +1,8 @@
 package td.service.impl;
 
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,14 +13,17 @@ import td.constant.StatusConstant;
 import td.context.BaseContext;
 import td.dto.EmployeeDTO;
 import td.dto.EmployeeLoginDTO;
+import td.dto.EmployeePageQueryDTO;
 import td.entity.Employee;
 import td.exception.AccountLockedException;
 import td.exception.AccountNotFoundException;
 import td.exception.PasswordErrorException;
 import td.mapper.EmployeeMapper;
+import td.result.PageResult;
 import td.service.EmployeeService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -64,13 +69,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     /**
      * 新增员工
+     *
      * @param employeeDTO
      */
     @Override
     public void save(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
         //对象属性拷贝 属性名一致
-        BeanUtils.copyProperties(employeeDTO,employee);
+        BeanUtils.copyProperties(employeeDTO, employee);
         //账号状态
         employee.setStatus(StatusConstant.ENABLE);
         //设置密码
@@ -84,4 +90,20 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeMapper.insert(employee);
     }
 
+    /**
+     * 分页查询
+     *
+     * @param employeePageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
+        PageHelper.startPage(employeePageQueryDTO.getPage(), employeePageQueryDTO.getPageSize());
+        Page<Employee> page = employeeMapper.pageQuery(employeePageQueryDTO);
+
+        long total = page.getTotal();
+        List<Employee> records = page.getResult();
+
+        return new PageResult(total,records);
+    }
 }
