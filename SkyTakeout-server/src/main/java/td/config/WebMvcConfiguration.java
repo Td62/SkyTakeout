@@ -67,7 +67,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 //     * 设置静态资源映射
 //     * @param registry
 //     */
-//    @Override
+    @Override
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
         log.info("设置静态资源映射");
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
@@ -86,6 +86,6 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         //将消息转换器设置一个对象转换器,对象转换器可以将java对象序列化为json数据
         converter.setObjectMapper(new JacksonObjectMapper());
         //将自己的消息转换器加入容器中 0 优先使用自己的转换器
-        converters.add(0,converter);
+        converters.add(1,converter);
     }
 }
