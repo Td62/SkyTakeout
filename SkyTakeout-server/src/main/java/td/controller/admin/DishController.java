@@ -11,6 +11,8 @@ import td.result.PageResult;
 import td.result.Result;
 import td.service.DishService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/admin/dish")
 @Tag(name = "菜品接口")
@@ -22,26 +24,42 @@ public class DishController {
 
     /**
      * 新增对应菜品和口味
+     *
      * @param dishDTO
      * @return
      */
     @PostMapping
     @Operation(summary = "新增菜品")
-    public Result save(@RequestBody DishDTO dishDTO){
+    public Result save(@RequestBody DishDTO dishDTO) {
         dishService.saveWithFlavor(dishDTO);
         return Result.success();
     }
 
     /**
      * 菜品分页查询
+     *
      * @param dishPageQueryDTO
      * @return
      */
     @GetMapping("/page")
     @Operation(summary = "菜品分页查询")
-    public Result<PageResult> page(DishPageQueryDTO dishPageQueryDTO){
-        log.info("菜品分页查询:{}",dishPageQueryDTO);
+    public Result<PageResult> page(DishPageQueryDTO dishPageQueryDTO) {
+        log.info("菜品分页查询:{}", dishPageQueryDTO);
         PageResult PageResult = dishService.pageQuery(dishPageQueryDTO);
         return Result.success(PageResult);
+    }
+
+    /**
+     * 菜品批量删除
+     *
+     * @param ids
+     * @return
+     */
+    @DeleteMapping
+    @Operation(summary = "菜品批量删除")
+    public Result delete(@RequestParam List<Long> ids) {
+        log.info("菜品批量删除:{}",ids);
+        dishService.deleteBatch(ids);
+        return Result.success();
     }
 }

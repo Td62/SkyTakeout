@@ -4,6 +4,8 @@ import td.dto.DishDTO;
 import td.dto.DishPageQueryDTO;
 import td.result.PageResult;
 
+import java.util.List;
+
 public interface DishService {
     /**
      * 新增对应菜品和口味
@@ -17,4 +19,10 @@ public interface DishService {
      * @return
      */
     PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO);
+
+    /**
+     * 菜品批量删除
+     * @param ids
+     */
+    void deleteBatch(List<Long> ids);
 }

@@ -1,5 +1,6 @@
 package td.mapper;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import td.entity.DishFlavor;
 
@@ -12,4 +13,12 @@ public interface DishFlavorMapper {
      * @param dishFlavors
      */
     void insertBatch(List<DishFlavor> dishFlavors);
+
+    /**
+     * 根据菜品id删除对应口味数据
+     * @param dishId
+     */
+
+    @Delete("delete from dish_flavor where dish_id = #{dishId}")
+    void deleteByDishId(Long dishId);
 }
