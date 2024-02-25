@@ -46,7 +46,7 @@ public class DishServiceImpl implements DishService {
         //获取insert生成的主键值
         Long dishId = dish.getId();
         List<DishFlavor> dishFlavors = dishDTO.getFlavors();
-        if (dishFlavors != null && !dishFlavors.isEmpty()) {
+        if (dishFlavors != null && dishFlavors.size() > 0) {
             dishFlavors.forEach(dishFlavor -> {
                 dishFlavor.setDishId(dishId);
             });
@@ -69,6 +69,7 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 菜品批量删除
+     *
      * @param ids
      */
 
@@ -76,24 +77,34 @@ public class DishServiceImpl implements DishService {
     @Override
     public void deleteBatch(List<Long> ids) {
         //菜品是否在售
-        ids.forEach(id -> {
-            Dish dish = dishMapper.getById(id);
-            if (dish.getStatus() == StatusConstant.ENABLE){
-                throw  new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
+        List<Dish> dish = dishMapper.getByIds(ids);
+        System.out.println(dish);
+        dish.forEach(d -> {
+            if (d.getStatus() == StatusConstant.ENABLE) {
+                throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
             }
         });
-        //菜品是否被套餐关联
-       List<Long> setMealIds =  setMealDishMapper.getSetMealIdsByDishIds(ids);
-       if (setMealIds != null && !setMealIds.isEmpty()){
-           throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
-       }
 
-       //删除菜品数据
-       //删除菜品关联口味数据
-       ids.forEach(id -> {
-           dishMapper.deleteById(id);
-           dishFlavorMapper.deleteByDishId(id);
-       });
+//        ids.forEach(id -> {
+//            Dish dish = dishMapper.getById(id);
+//            if (dish.getStatus() == StatusConstant.ENABLE) {
+//                throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
+//            }
+//        });
+        //菜品是否被套餐关联
+        List<Long> setMealIds = setMealDishMapper.getSetMealIdsByDishIds(ids);
+        if (setMealIds != null && setMealIds.size() > 0) {
+            throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
+        }
+
+        //删除菜品数据
+        //删除菜品关联口味数据
+//       ids.forEach(id -> {
+//           dishMapper.deleteById(id);
+//           dishFlavorMapper.deleteByDishId(id);
+//       });
+        dishMapper.deleteByIds(ids);
+        dishFlavorMapper.deleteByDishIds(ids);
 
     }
 }
