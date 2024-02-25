@@ -1,15 +1,20 @@
 package td.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import td.dto.DishDTO;
+import td.dto.DishPageQueryDTO;
 import td.entity.Dish;
 import td.entity.DishFlavor;
 import td.mapper.DishFlavorMapper;
 import td.mapper.DishMapper;
+import td.result.PageResult;
 import td.service.DishService;
+import td.vo.DishVO;
 
 import java.util.List;
 @Service
@@ -40,5 +45,17 @@ public class DishServiceImpl implements DishService {
             });
             dishFlavorMapper.insertBatch(dishFlavors);
         }
+    }
+
+    /**
+     * 菜品分页查询
+     * @param dishPageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO) {
+        PageHelper.startPage(dishPageQueryDTO.getPage(),dishPageQueryDTO.getPageSize());
+        Page<DishVO> page = dishMapper.pageQuery(dishPageQueryDTO);
+        return new PageResult(page.getTotal(), page.getResult());
     }
 }

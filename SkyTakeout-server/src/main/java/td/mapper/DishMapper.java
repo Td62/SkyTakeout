@@ -1,10 +1,13 @@
 package td.mapper;
 
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import td.annotation.AutoFill;
+import td.dto.DishPageQueryDTO;
 import td.entity.Dish;
 import td.enumeration.OperationType;
+import td.vo.DishVO;
 
 @Mapper
 public interface DishMapper {
@@ -23,4 +26,11 @@ public interface DishMapper {
      */
     @AutoFill(value = OperationType.INSERT)
     void insert(Dish dish);
+
+    /**
+     * 菜品分页查询
+     * @param dishPageQueryDTO
+     * @return
+     */
+    Page<DishVO> pageQuery(DishPageQueryDTO dishPageQueryDTO);
 }
