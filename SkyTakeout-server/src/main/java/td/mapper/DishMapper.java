@@ -10,11 +10,14 @@ import td.entity.Dish;
 import td.enumeration.OperationType;
 import td.vo.DishVO;
 
+import java.util.List;
+
 @Mapper
 public interface DishMapper {
 
     /**
      * 根据分类id查询菜品数量
+     *
      * @param categoryId
      * @return
      */
@@ -23,6 +26,7 @@ public interface DishMapper {
 
     /**
      * 插入菜品数据
+     *
      * @param dish
      */
     @AutoFill(value = OperationType.INSERT)
@@ -30,23 +34,47 @@ public interface DishMapper {
 
     /**
      * 菜品分页查询
+     *
      * @param dishPageQueryDTO
      * @return
      */
     Page<DishVO> pageQuery(DishPageQueryDTO dishPageQueryDTO);
 
     /**
-     *主键查询菜品
+     * 主键查询菜品
+     *
      * @param id
      * @return
      */
     @Select("select * from dish where id = #{id}")
     Dish getById(Long id);
 
+
+//    /**
+//     * 根据id删除菜品
+//     * @param id
+//     */
+//    @Delete("delete from dish where id = #{id}")
+//    void deleteById(Long id);
+
     /**
-     * 根据id删除菜品
-     * @param id
+     * 根据菜品id集合批量删除菜品
+     *
+     * @param ids
      */
-    @Delete("delete from dish where id = #{id}")
-    void deleteById(Long id);
+    void deleteByIds(List<Long> ids);
+
+    /**
+     * 修改菜品属性
+     * @param dish
+     */
+    @AutoFill(value = OperationType.UPDATE)
+    void update(Dish dish);
+
+    /**
+     * 根据菜品id集合批量查询
+     * @param ids
+     * @return
+     */
+    List<Dish> getByIds(List<Long> ids);
 }

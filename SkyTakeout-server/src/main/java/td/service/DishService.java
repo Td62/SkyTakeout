@@ -3,6 +3,7 @@ package td.service;
 import td.dto.DishDTO;
 import td.dto.DishPageQueryDTO;
 import td.result.PageResult;
+import td.vo.DishVO;
 
 import java.util.List;
 
@@ -25,4 +26,17 @@ public interface DishService {
      * @param ids
      */
     void deleteBatch(List<Long> ids);
+
+    /**
+     * 根据id查询菜品和对应口味
+     * @param id
+     * @return
+     */
+    DishVO getByIdWithFlavor(Long id);
+
+    /**
+     * 更具id修改菜品基本信息和口味
+     * @param dishDTO
+     */
+    void updateWithFlavor(DishDTO dishDTO);
 }

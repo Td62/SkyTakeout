@@ -10,6 +10,7 @@ import td.dto.DishPageQueryDTO;
 import td.result.PageResult;
 import td.result.Result;
 import td.service.DishService;
+import td.vo.DishVO;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class DishController {
     @PostMapping
     @Operation(summary = "新增菜品")
     public Result save(@RequestBody DishDTO dishDTO) {
+        log.info("新增菜品:{}",dishDTO);
         dishService.saveWithFlavor(dishDTO);
         return Result.success();
     }
@@ -60,6 +62,32 @@ public class DishController {
     public Result delete(@RequestParam List<Long> ids) {
         log.info("菜品批量删除:{}",ids);
         dishService.deleteBatch(ids);
+        return Result.success();
+    }
+
+    /**
+     *根据id查询菜品和对应口味
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "根据id查询菜品")
+    public Result<DishVO> getById(@PathVariable Long id){
+        log.info("根据id查询菜品:{}",id);
+        DishVO dishVO =  dishService.getByIdWithFlavor(id);
+        return Result.success(dishVO);
+    }
+
+    /**
+     * 修改菜品
+     * @param dishDTO
+     * @return
+     */
+    @PutMapping
+    @Operation(summary = "修改菜品")
+    public Result update(@RequestBody DishDTO dishDTO) {
+        log.info("修改菜品:{}",dishDTO);
+        dishService.updateWithFlavor(dishDTO);
         return Result.success();
     }
 }
