@@ -15,6 +15,12 @@ spring:
     multipart:
       max-file-size: 1024MB
       max-request-size: 2048MB
+  data:
+    redis:
+      host: ${td.redis.host}
+      port: ${td.redis.port}
+      password: ${td.redis.password}
+      database: ${td.redis.database}
 
 mybatis:
   #mapper配置文件
@@ -52,6 +58,9 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   group-configs:
-    - group: 'default'
+    - group: '管理端'
       paths-to-match: '/**'
-      packages-to-scan: td.controller
+      packages-to-scan: td.controller.admin
+    - group: '用户端'
+      paths-to-match: '/**'
+      packages-to-scan: td.controller.user

@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin/common/")
+@RequestMapping("/admin/common")
 @Tag(name = "通用接口")
 public class CommonController {
     @Operation(summary = "文件上传")
