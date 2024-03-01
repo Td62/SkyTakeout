@@ -4,21 +4,20 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import td.constant.MessageConstant;
 import td.constant.StatusConstant;
-import td.context.BaseContext;
 import td.dto.CategoryDTO;
 import td.dto.CategoryPageQueryDTO;
 import td.entity.Category;
 import td.exception.DeletionNotAllowedException;
 import td.mapper.CategoryMapper;
 import td.mapper.DishMapper;
-import td.mapper.SetmealMapper;
+import td.mapper.SetMealMapper;
 import td.result.PageResult;
 import td.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
 /**
@@ -33,7 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private DishMapper dishMapper;
     @Autowired
-    private SetmealMapper setmealMapper;
+    private SetMealMapper setmealMapper;
 
     /**
      * 新增分类
