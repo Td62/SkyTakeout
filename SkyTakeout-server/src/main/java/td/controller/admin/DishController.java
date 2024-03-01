@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import td.dto.DishDTO;
 import td.dto.DishPageQueryDTO;
@@ -14,6 +15,7 @@ import td.service.DishService;
 import td.vo.DishVO;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/admin/dish")
@@ -23,6 +25,8 @@ public class DishController {
 
     @Autowired
     private DishService dishService;
+    @Autowired
+    RedisTemplate redisTemplate;
 
     /**
      * 新增对应菜品和口味
@@ -49,6 +53,8 @@ public class DishController {
     public Result<PageResult> page(DishPageQueryDTO dishPageQueryDTO) {
         log.info("菜品分页查询:{}", dishPageQueryDTO);
         PageResult PageResult = dishService.pageQuery(dishPageQueryDTO);
+        String key = "dish_"+ dishPageQueryDTO.getCategoryId();
+        cleanCache(key);
         return Result.success(PageResult);
     }
 
@@ -63,6 +69,7 @@ public class DishController {
     public Result delete(@RequestParam List<Long> ids) {
         log.info("菜品批量删除:{}",ids);
         dishService.deleteBatch(ids);
+        cleanCache("dish_*");
         return Result.success();
     }
 
@@ -89,6 +96,7 @@ public class DishController {
     public Result update(@RequestBody DishDTO dishDTO) {
         log.info("修改菜品:{}",dishDTO);
         dishService.updateWithFlavor(dishDTO);
+        cleanCache("dish_*");
         return Result.success();
     }
 
@@ -115,7 +123,13 @@ public class DishController {
     @Operation(summary = "菜品起售停售")
     public Result<String> startOrStop(@PathVariable Integer status, Long id) {
         dishService.startOrStop(status, id);
-
+        cleanCache("dish_*");
         return Result.success();
+    }
+
+
+    private void cleanCache(String pattern){
+        Set keys = redisTemplate.keys(pattern);
+        redisTemplate.delete(keys);
     }
 }

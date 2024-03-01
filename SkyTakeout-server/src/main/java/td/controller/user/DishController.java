@@ -1,5 +1,6 @@
 package td.controller.user;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import td.constant.StatusConstant;
 import td.entity.Dish;
 import td.result.Result;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 
 @RestController("userDishController")
@@ -21,6 +23,8 @@ import java.util.List;
 public class DishController {
     @Autowired
     private DishService dishService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 根据分类id查询菜品
@@ -31,11 +35,22 @@ public class DishController {
     @GetMapping("/list")
     @Operation(summary = "根据分类id查询菜品")
     public Result<List<DishVO>> list(Long categoryId) {
+        //redis
+        String key = "dish_" + categoryId;
+        List<DishVO> list = (List<DishVO>) redisTemplate.opsForValue().get(key);
+        if (list != null && list.size() > 0){
+            return Result.success(list);
+        }
+
+
+        //mysql
         Dish dish = new Dish();
         dish.setCategoryId(categoryId);
         dish.setStatus(StatusConstant.ENABLE);//查询起售中的菜品
 
-        List<DishVO> list = dishService.listWithFlavor(dish);
+         list = dishService.listWithFlavor(dish);
+
+         redisTemplate.opsForValue().set(key,list);
 
         return Result.success(list);
     }
