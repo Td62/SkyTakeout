@@ -1,6 +1,7 @@
 package td.controller.user;
 
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.cache.annotation.Cacheable;
 import td.constant.StatusConstant;
 import td.entity.Setmeal;
 import td.result.Result;
@@ -29,6 +30,7 @@ public class SetmealController {
      */
     @GetMapping("/list")
     @Operation(summary = "根据分类id查询套餐")
+    @Cacheable(cacheNames = "setMealCache",key = "#categoryId") //key setMealCache::categoryId
     public Result<List<Setmeal>> list(Long categoryId) {
         Setmeal setmeal = new Setmeal();
         setmeal.setCategoryId(categoryId);
