@@ -7,11 +7,11 @@ td:
     username: root
     password: 1234
   redis:
-    host: localhost
+    host: 192.168.241.130
     port: 6379
     password: 123456
     database: 0
 
   wechat:
     appid: wx98e6a5a30f0ad550
-    secret: 78adbc188ade4b6beb16e581a9ba42ee
+    secret:
