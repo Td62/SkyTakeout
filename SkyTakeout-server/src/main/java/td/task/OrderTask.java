@@ -20,7 +20,7 @@ public class OrderTask {
     private OrderMapper orderMapper;
 
     //处理超时订单
-    @Scheduled(cron = "0 * * * * ?")//每分钟触发一次
+    @Scheduled(cron = "0 0/1 * * * ? ")//每分钟触发一次
     public void processTimeOutOrder() {
         log.info("处理超时订单:{}", LocalDateTime.now());
         LocalDateTime time = LocalDateTime.now().minusMinutes(15);
@@ -36,7 +36,7 @@ public class OrderTask {
         }
 
     }
-    @Scheduled(cron =" 0/10 * * * * ?  " )//10分钟触发一次
+    @Scheduled(cron =" 0 0/10 * * * ? " )//10分钟触发一次
     public void processDeliveryOrder(){
         log.info("处理派送中订单:{}", LocalDateTime.now());
         LocalDateTime time = LocalDateTime.now().minusMinutes(60);

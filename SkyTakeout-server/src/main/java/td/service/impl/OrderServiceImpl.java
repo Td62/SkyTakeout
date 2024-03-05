@@ -1,5 +1,6 @@
 package td.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -22,10 +23,13 @@ import td.vo.OrderPaymentVO;
 import td.vo.OrderStatisticsVO;
 import td.vo.OrderSubmitVO;
 import td.vo.OrderVO;
+import td.webSocket.WebSocketServer;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +44,8 @@ public class OrderServiceImpl implements OrderService {
     private ShoppingCartMapper shoppingCartMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 用户下单
@@ -65,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
 
         }
         //订单表插入数据
-        String address = addressBook.getProvinceName()+addressBook.getCityName()+addressBook.getDistrictName()+addressBook.getDetail();
+        String address = addressBook.getProvinceName() + addressBook.getCityName() + addressBook.getDistrictName() + addressBook.getDetail();
         Orders orders = new Orders();
         BeanUtils.copyProperties(ordersSubmitDTO, orders);
         orders.setOrderTime(LocalDateTime.now());
@@ -153,6 +159,14 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+        //通过websocket推送消息 type orderId content
+        Map map = new HashMap<>();
+        map.put("type", 1); //来单提醒
+        map.put("orderId", ordersDB.getId());
+        map.put("content", "订单号" + outTradeNo);
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
+
     }
 
     /**
@@ -486,5 +500,27 @@ public class OrderServiceImpl implements OrderService {
         orders.setDeliveryTime(LocalDateTime.now());
 
         orderMapper.update(orders);
+    }
+
+    /**
+     * 用户催单
+     *
+     * @return
+     */
+    @Override
+    public void reminder(Long id) {
+        // 根据id查询订单
+        Orders ordersDB = orderMapper.getById(id);
+
+        // 校验订单是否存在，并且状态为4
+        if (ordersDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Map map = new HashMap<>();
+        map.put("type", 2);//用户催单
+        map.put("orderId", id);
+        map.put("content", "订单号" + ordersDB.getNumber());
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
     }
 }
