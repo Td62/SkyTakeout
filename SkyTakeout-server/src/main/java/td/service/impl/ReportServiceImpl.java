@@ -1,7 +1,12 @@
 package td.service.impl;
 
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import td.dto.GoodsSalesDTO;
@@ -9,11 +14,11 @@ import td.entity.Orders;
 import td.mapper.OrderMapper;
 import td.mapper.UserMapper;
 import td.service.ReportService;
-import td.vo.OrderReportVO;
-import td.vo.SalesTop10ReportVO;
-import td.vo.TurnoverReportVO;
-import td.vo.UserReportVO;
+import td.service.WorkspaceService;
+import td.vo.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -30,6 +35,8 @@ public class ReportServiceImpl implements ReportService {
     private OrderMapper orderMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private WorkspaceService workspaceService;
 
     /**
      * 统计指定区间内营业额数据
@@ -61,11 +68,7 @@ public class ReportServiceImpl implements ReportService {
             turnoverList.add(turnover);
         }
 
-        return TurnoverReportVO.
-                builder()
-                .dateList(StringUtils.join(dateList, ","))
-                .turnoverList(StringUtils.join(turnoverList, ","))
-                .build();
+        return TurnoverReportVO.builder().dateList(StringUtils.join(dateList, ",")).turnoverList(StringUtils.join(turnoverList, ",")).build();
     }
 
     /**
@@ -102,11 +105,7 @@ public class ReportServiceImpl implements ReportService {
         }
 
 
-        return UserReportVO.builder()
-                .dateList(StringUtils.join(dateList, ","))
-                .newUserList(StringUtils.join(newUserList, ","))
-                .totalUserList(StringUtils.join(totalUserList, ","))
-                .build();
+        return UserReportVO.builder().dateList(StringUtils.join(dateList, ",")).newUserList(StringUtils.join(newUserList, ",")).totalUserList(StringUtils.join(totalUserList, ",")).build();
     }
 
     /**
@@ -145,14 +144,7 @@ public class ReportServiceImpl implements ReportService {
             orderCompletionRate = validOrderCount.doubleValue() / totalOrderCount;
         }
 
-        return OrderReportVO.builder()
-                .dateList(StringUtils.join(dateList, ","))
-                .orderCountList(StringUtils.join(orderCountList, ","))
-                .validOrderCountList(StringUtils.join(validOrderCountList, ","))
-                .totalOrderCount(totalOrderCount)
-                .validOrderCount(validOrderCount)
-                .orderCompletionRate(orderCompletionRate)
-                .build();
+        return OrderReportVO.builder().dateList(StringUtils.join(dateList, ",")).orderCountList(StringUtils.join(orderCountList, ",")).validOrderCountList(StringUtils.join(validOrderCountList, ",")).totalOrderCount(totalOrderCount).validOrderCount(validOrderCount).orderCompletionRate(orderCompletionRate).build();
     }
 
     private Integer getOrderCount(LocalDateTime begin, LocalDateTime end, Integer status) {
@@ -177,11 +169,60 @@ public class ReportServiceImpl implements ReportService {
         List<GoodsSalesDTO> SalesTop10 = orderMapper.getSalesTop10(beginTime, endTime);
         List<String> names = SalesTop10.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList());
         List<Integer> numbers = SalesTop10.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList());
-        String nameList = StringUtils.join(names,",");
-        String numberList = StringUtils.join(numbers,",");
-        return SalesTop10ReportVO.builder()
-                .nameList(nameList)
-                .numberList(numberList)
-                .build();
+        String nameList = StringUtils.join(names, ",");
+        String numberList = StringUtils.join(numbers, ",");
+        return SalesTop10ReportVO.builder().nameList(nameList).numberList(numberList).build();
+    }
+
+    /**
+     * 导出运营数据报表
+     *
+     * @param response
+     */
+    @Override
+    public void exportBusinessData(HttpServletResponse response) {
+        LocalDate dateBegin = LocalDate.now().minusDays(30);
+        LocalDate dateEnd = LocalDate.now().minusDays(1);
+        //查询概览数据
+        BusinessDataVO businessDataVO = workspaceService.getBusinessData(LocalDateTime.of(dateBegin, LocalTime.MIN), LocalDateTime.of(dateEnd, LocalTime.MAX));
+        //写入到文件中
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream("template/运营数据报表模板.xlsx");
+        try {
+            XSSFWorkbook excel = new XSSFWorkbook(in);
+            //填充数据
+            XSSFSheet sheet = excel.getSheet("Sheet1");
+            sheet.getRow(1).getCell(1).setCellValue("时间:" + dateBegin + "-" + dateEnd);
+
+            XSSFRow row = sheet.getRow(3);
+            row.getCell(2).setCellValue(businessDataVO.getTurnover());
+            row.getCell(4).setCellValue(businessDataVO.getOrderCompletionRate());
+            row.getCell(6).setCellValue(businessDataVO.getNewUsers());
+
+            row = sheet.getRow(4);
+            row.getCell(2).setCellValue(businessDataVO.getValidOrderCount());
+            row.getCell(4).setCellValue(businessDataVO.getUnitPrice());
+            //填充明细数据
+            for (int i = 0; i < 30; i++) {
+                LocalDate date = dateBegin.plusDays(i);
+                //查询某一天营业数据
+                BusinessDataVO businessData = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+                row = sheet.getRow(7 + i);
+                row.getCell(1).setCellValue(date.toString());
+                row.getCell(2).setCellValue(businessData.getTurnover());
+                row.getCell(3).setCellValue(businessData.getValidOrderCount());
+                row.getCell(4).setCellValue(businessData.getOrderCompletionRate());
+                row.getCell(5).setCellValue(businessData.getUnitPrice());
+                row.getCell(6).setCellValue(businessData.getNewUsers());
+            }
+
+            //通过输出流输出到浏览器
+            ServletOutputStream out = response.getOutputStream();
+            excel.write(out);
+            out.close();
+            excel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
